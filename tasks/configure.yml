@@ -28,6 +28,41 @@
     - "check status"
     - "assert running"
 
+- name: Set templatized Telegraf configuration [input.plugins]
+  template:
+    src: telegraf-inputs-plugins.conf.j2
+    dest: "{{ telegraf_configuration_dir }}/telegraf.d/inputs.{{ item.id | default(item.name) }}.conf"
+    force: yes
+    backup: yes
+    owner: telegraf
+    group: telegraf
+    mode: 0744
+  with_items: "{{ telegraf_plugins }}"
+  when: telegraf_template_configuration
+  # If config changes, restart telegraf and confirm it remained running
+  notify:
+    - "restart telegraf"
+    - "pause"
+    - "check status"
+    - "assert running"
+
+- name: Set templatized Telegraf configuration [outputs.influxdb]
+  template:
+    src: telegraf-outputs-influxdb.conf.j2
+    dest: "{{ telegraf_configuration_dir }}/telegraf.d/outputs.influxdb.conf"
+    force: yes
+    backup: yes
+    owner: telegraf
+    group: telegraf
+    mode: 0744
+  when: telegraf_template_configuration
+  # If config changes, restart telegraf and confirm it remained running
+  notify:
+    - "restart telegraf"
+    - "pause"
+    - "check status"
+    - "assert running"
+
 - name: Test for sysvinit script
   stat:
     path: /etc/init.d/telegraf
